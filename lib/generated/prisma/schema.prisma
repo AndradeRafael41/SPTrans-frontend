@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model corredor {
+  codigo         Int              @id
+  nome           String           @db.VarChar(60)
+  corredorparada corredorparada[]
+}
+
+model corredorparada {
+  codigocorredor Int
+  codigoparada   Int
+  corredor       corredor @relation(fields: [codigocorredor], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  parada         parada   @relation(fields: [codigoparada], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([codigocorredor, codigoparada])
+}
+
+model itinerario {
+  codigolinha     Int
+  prefixoveiculo  String   @db.VarChar(10)
+  datareferencia  DateTime @db.Timestamp(6)
+  codigoparada    Int
+  previsaochegada DateTime @db.Time(6)
+  linha           linha    @relation(fields: [codigolinha], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  parada          parada   @relation(fields: [codigoparada], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  veiculo         veiculo  @relation(fields: [prefixoveiculo], references: [prefixo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([codigolinha, codigoparada, datareferencia])
+}
+
+model linha {
+  codigo               Int           @id
+  letreironumerico     String        @db.VarChar(60)
+  modooperacao         Int           @db.SmallInt
+  modocircular         Boolean
+  sentido              Int           @db.SmallInt
+  descritivoprincipal  String        @db.VarChar(50)
+  descritivosecundario String        @db.VarChar(50)
+  itinerario           itinerario[]
+  linhaparada          linhaparada[]
+}
+
+model linhaparada {
+  codigolinha  Int
+  codigoparada Int
+  linha        linha  @relation(fields: [codigolinha], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  parada       parada @relation(fields: [codigoparada], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([codigolinha, codigoparada])
+}
+
+model parada {
+  codigo         Int              @id
+  nome           String?          @db.VarChar(50)
+  endereco       String?          @db.VarChar(100)
+  longitude      Float            @db.Real
+  latitude       Float            @db.Real
+  corredorparada corredorparada[]
+  itinerario     itinerario[]
+  linhaparada    linhaparada[]
+}
+
+model veiculo {
+  prefixo    String       @id @db.VarChar(10)
+  acessopcd  Boolean
+  itinerario itinerario[]
+}
