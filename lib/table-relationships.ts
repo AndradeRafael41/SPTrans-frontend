@@ -1,3 +1,4 @@
+
 const TableRelationships: Record<string, string[]> = {
   Linha: ["LinhaParada", "Itinerario"],
   Corredor: ["Parada"],
