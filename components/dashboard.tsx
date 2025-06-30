@@ -13,12 +13,12 @@ import ColumnSelector from "@/components/column-selector"
 
 // Definição das colunas disponíveis por tabela
 const tableColumns: Record<string, string[]> = {
-  Linha: ["Codigo", "LetreiroNumerico", "DescritivoPrincipal"],
-  Parada: ["ParadaCodigo", "ParadaNome", "Latitude", "Longitude"],
-  Veiculo: ["Prefixo", "AcessoPcd"],
-  Corredor: ["CorredorCodigo", "CorredorNome"],
-  Itinerario: ["DataReferencia", "PrevisaoChegada"],
-  LinhaParada: ["LinhaId", "ParadaId", "Sequencia"],
+  Linha: ["codigo", "letreironumerico", "descritivoprincipal"],
+  Parada: ["codigo", "nome", "latitude", "longitude"],
+  Veiculo: ["prefixo", "acessopcd"],
+  Corredor: ["codigo", "nome"],
+  Itinerario: ["datareferencia", "previsaochegada"],
+  LinhaParada: ["codigolinha", "codigoparada"],
 }
 
 export default function Dashboard() {
@@ -32,24 +32,15 @@ export default function Dashboard() {
   // Atualiza as tabelas disponíveis com base nas seleções atuais
   useEffect(() => {
     if (selectedTables.length === 0) {
-      // Se nenhuma tabela estiver selecionada, todas estão disponíveis
       setAvailableTables(Object.keys(TableRelationships))
     } else {
-      // Caso contrário, apenas tabelas relacionadas estão disponíveis
       const relatedTables = new Set<string>()
-
-      // Adiciona as tabelas já selecionadas
       selectedTables.forEach((table) => relatedTables.add(table))
-
-      // Adiciona tabelas relacionadas às selecionadas
       selectedTables.forEach((table) => {
         if (TableRelationships[table]) {
-          TableRelationships[table].forEach((relatedTable) => {
-            relatedTables.add(relatedTable)
-          })
+          TableRelationships[table].forEach((relatedTable) => relatedTables.add(relatedTable))
         }
       })
-
       setAvailableTables(Array.from(relatedTables))
     }
   }, [selectedTables])
@@ -57,112 +48,89 @@ export default function Dashboard() {
   // Inicializa as colunas selecionadas quando as tabelas mudam
   useEffect(() => {
     const newSelectedColumns: Record<string, string[]> = {}
-
     selectedTables.forEach((table) => {
-      // Se já tiver colunas selecionadas para esta tabela, mantém
       if (selectedColumns[table]) {
         newSelectedColumns[table] = selectedColumns[table]
       } else {
-        // Caso contrário, seleciona todas as colunas por padrão
         newSelectedColumns[table] = [...(tableColumns[table] || [])]
       }
     })
-
     setSelectedColumns(newSelectedColumns)
   }, [selectedTables])
 
-  // Função para buscar dados do backend
-  const fetchData = async () => {
-    if (selectedTables.length === 0) {
-      setError("Selecione pelo menos uma tabela")
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      // Simulação de chamada para o backend
-      // Na implementação real, isso seria uma chamada fetch para sua API
-      console.log("Enviando consulta para tabelas:", selectedTables)
-      console.log("Colunas selecionadas:", selectedColumns)
-
-      // Simulando um tempo de resposta
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Dados simulados baseados nas tabelas selecionadas
-      const mockData = generateMockData(selectedTables)
-      setResults(mockData)
-    } catch (err) {
-      setError("Erro ao buscar dados. Tente novamente.")
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Função para gerar dados simulados com base nas tabelas selecionadas
-  const generateMockData = (tables: string[]) => {
-    // Aqui você geraria dados simulados com base nas tabelas selecionadas
-    // Em um ambiente real, esses dados viriam do backend
-
-    const mockData = []
-
-    for (let i = 0; i < 50; i++) {
-      const row: Record<string, any> = {}
-
-      if (tables.includes("Linha")) {
-        row.Codigo = 100 + i
-        row.LetreiroNumerico = `Linha ${100 + i}`
-        row.DescritivoPrincipal = `Centro - Bairro ${String.fromCharCode(65 + (i % 26))}`
-      }
-
-      if (tables.includes("Parada")) {
-        row.ParadaCodigo = 1000 + i
-        row.ParadaNome = `Parada ${1000 + i}`
-        row.Latitude = (-23.55 - (i % 10) * 0.01).toFixed(6)
-        row.Longitude = (-46.63 + (i % 10) * 0.01).toFixed(6)
-      }
-
-      if (tables.includes("Veiculo")) {
-        row.Prefixo = `AB${1000 + i}`
-        row.AcessoPcd = i % 3 === 0 ? false : true
-      }
-
-      if (tables.includes("Corredor")) {
-        row.CorredorCodigo = 10 + (i % 5)
-        row.CorredorNome = `Corredor ${String.fromCharCode(65 + (i % 5))}`
-      }
-
-      if (tables.includes("Itinerario")) {
-        row.DataReferencia = `2025-05-${15 + (i % 10)}`
-        row.PrevisaoChegada = `${8 + (i % 12)}:${(i * 5) % 60 < 10 ? "0" + ((i * 5) % 60) : (i * 5) % 60}`
-      }
-
-      if (tables.includes("LinhaParada")) {
-        row.LinhaId = 100 + (i % 10)
-        row.ParadaId = 1000 + (i % 20)
-        row.Sequencia = i % 30
-      }
-
-      mockData.push(row)
-    }
-
-    return mockData
-  }
-
-  // Obter todas as colunas visíveis para a tabela de resultados
+  // Função para obter todas as colunas visíveis para a tabela de resultados
   const getVisibleColumns = () => {
     const columns: string[] = []
-
-    Object.entries(selectedColumns).forEach(([table, tableColumns]) => {
-      tableColumns.forEach((column) => {
-        columns.push(column)
+    Object.entries(selectedColumns).forEach(([table, cols]) => {
+      cols.forEach((col) => {
+        if (!columns.includes(col)) {
+          columns.push(col)
+        }
       })
     })
-
     return columns
   }
+
+  // Função para formatar os dados da API convertendo as chaves minúsculas para as chaves camel case/capitalizadas
+  const formatDataKeys = (data: any[], columns: string[]) => {
+    return data.map((item) => {
+      const newItem: Record<string, any> = {}
+      columns.forEach((col) => {
+        const lowerCol = col.toLowerCase()
+        newItem[col] = item[lowerCol]
+      })
+      return newItem
+    })
+  }
+
+  // Função para buscar dados do backend
+  const fetchData = async () => {
+  if (selectedTables.length === 0) {
+    setError("Selecione pelo menos uma tabela")
+    return
+  }
+
+  setLoading(true)
+  setError(null)
+
+  try {
+    console.log("Enviando consulta para tabelas:", selectedTables)
+    console.log("Colunas selecionadas:", selectedColumns)
+
+    const response = await fetch("/api/relatorio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tables: selectedTables,
+        fields: selectedColumns,
+        limit: 50,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    console.log("Resposta da API:", data)
+
+    if (data && Array.isArray(data.data)) {
+      const formattedData = formatDataKeys(data.data, getVisibleColumns())
+      setResults(formattedData)
+    } else {
+      setError("Resposta da API em formato inesperado.")
+      console.error("Formato inesperado:", data)
+    }
+  } catch (err) {
+    setError("Erro ao buscar dados. Tente novamente.")
+    console.error(err)
+  } finally {
+    setLoading(false)
+  }
+}
+
 
   return (
     <SidebarProvider>

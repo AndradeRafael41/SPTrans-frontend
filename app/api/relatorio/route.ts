@@ -1,15 +1,23 @@
+import { NextResponse } from "next/server";
 import { generateReport } from "@/lib/reportGenerate";
-import { NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
-    const dados = await generateReport(body);
-    return NextResponse.json({ dados });
+    const body = await request.json();
+    const report = await generateReport(body);
+
+    return NextResponse.json({
+      success: true,
+      data: report,
+    });
   } catch (error: any) {
+    console.error('Erro na API /api/relatorio:', error);
     return NextResponse.json(
-        { error: error.message }, 
-        { status: 500 }
+      {
+        success: false,
+        error: error.message,
+      },
+      { status: 500 }
     );
   }
 }

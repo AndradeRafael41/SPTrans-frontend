@@ -18,12 +18,12 @@ import { Settings2 } from "lucide-react"
 
 // Definição das colunas disponíveis por tabela
 const tableColumns: Record<string, string[]> = {
-  Linha: ["Codigo", "LetreiroNumerico", "DescritivoPrincipal"],
-  Parada: ["ParadaCodigo", "ParadaNome", "Latitude", "Longitude"],
-  Veiculo: ["Prefixo", "AcessoPcd"],
-  Corredor: ["CorredorCodigo", "CorredorNome"],
-  Itinerario: ["DataReferencia", "PrevisaoChegada"],
-  LinhaParada: ["LinhaId", "ParadaId", "Sequencia"],
+  Linha: ["codigo", "letreironumerico", "descritivoprincipal"],
+  Parada: ["codigo", "nome", "latitude", "longitude"],
+  Veiculo: ["prefixo", "acessopcd"],
+  Corredor: ["codigo", "nome"],
+  Itinerario: ["datareferencia", "previsaochegada"],
+  LinhaParada: ["codigolinha", "codigoparada"],
 }
 
 interface ColumnSelectorProps {

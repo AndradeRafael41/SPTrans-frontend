@@ -154,9 +154,28 @@ export default function ResultsTable({ data, visibleColumns }: ResultsTableProps
       return value ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />
     }
 
-    return value.toString()
-  }
+    if (Array.isArray(value)) {
+      return (
+        <div className="space-y-1">
+          {value.map((item, i) => (
+            <div key={i} className="p-1 rounded border">
+              {typeof item === "object" && item !== null ? (
+                Object.entries(item).map(([k, v]) => (
+                  <div key={k} className="text-xs">
+                    <span className="font-semibold">{k}:</span> {String(v)}
+                  </div>
+                ))
+              ) : (
+                <div>{String(item)}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    }
 
+    return String(value)
+  }
   // Resetar para a primeira página quando os filtros ou a pesquisa mudam
   const handleFiltersChange = (newFilters: FilterCondition[]) => {
     setFilters(newFilters)
